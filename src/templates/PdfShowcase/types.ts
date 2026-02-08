@@ -4,24 +4,28 @@ export const ScriptItemSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("stack"),
     duration: z.number().optional().default(60),
+    audioSrc: z.string().optional(),
   }),
   z.object({
     type: z.literal("focus"),
     page: z.number(),
     duration: z.number().optional().default(90),
     title: z.string().optional(),
+    audioSrc: z.string().optional(),
   }),
   z.object({
     type: z.literal("switch"),
     page: z.number(),
     duration: z.number().optional().default(90),
     title: z.string().optional(),
+    audioSrc: z.string().optional(),
   }),
   z.object({
     type: z.literal("fan"),
     page: z.number(),
     duration: z.number().optional().default(120),
     title: z.string().optional(),
+    audioSrc: z.string().optional(),
   }),
 ]);
 
