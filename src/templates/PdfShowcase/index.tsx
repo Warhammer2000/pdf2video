@@ -28,7 +28,6 @@ function generateScript(highlights: number[]): ScriptItem[] {
     }
   });
 
-  // Add ending scene - return to stack state
   script.push({ type: "stack", duration: 60 });
 
   return script;
@@ -53,7 +52,6 @@ export const PdfShowcase: React.FC<PdfShowcaseProps> = ({
     setTotalPages(numPages);
   }, []);
 
-  // Extract pages from script - computed once and cached
   const scriptExtractedPages = useMemo(() => {
     if (!customScript || customScript.length === 0) return null;
     const scriptPages = customScript
@@ -63,19 +61,15 @@ export const PdfShowcase: React.FC<PdfShowcaseProps> = ({
   }, [customScript]);
 
   const availablePages = useMemo(() => {
-    // Priority 1: Explicit pages prop
     if (pages && pages.length > 0) {
       return pages;
     }
-    // Priority 2: Pages extracted from script (before highlights!)
     if (scriptExtractedPages) {
       return scriptExtractedPages;
     }
-    // Priority 3: Highlights
     if (highlights && highlights.length > 0) {
       return highlights;
     }
-    // Fallback: All pages up to totalPages
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }, [pages, scriptExtractedPages, highlights, totalPages]);
 
@@ -90,7 +84,6 @@ export const PdfShowcase: React.FC<PdfShowcaseProps> = ({
     return generateScript(defaultHighlights);
   }, [customScript, highlights, availablePages]);
 
-  // Calculate total highlight pages count (for progress indicator)
   const highlightCount = useMemo(() => {
     return script.filter(item => item.type === "focus" || item.type === "switch" || item.type === "fan").length;
   }, [script]);
@@ -142,19 +135,22 @@ export const PdfShowcase: React.FC<PdfShowcaseProps> = ({
     return firstNonStack?.from ?? 0;
   }, [sequences]);
 
-  // Check if current scene is the ending stack
   const isEndingStack = useMemo(() => {
     const lastSeq = sequences[sequences.length - 1];
     return lastSeq?.type === "stack" && frame >= lastSeq.from;
   }, [sequences, frame]);
 
-  // BGM fade in/out volume control
-  const fadeInDuration = fps * 2; // 2 second fade in
-  const fadeOutDuration = fps * 2; // 2 second fade out
+  const hasNarration = useMemo(() => {
+    return script.some((item) => "audioSrc" in item && item.audioSrc);
+  }, [script]);
+
+  const fadeInDuration = fps * 2; 
+  const fadeOutDuration = fps * 2; 
+  const bgmPeakVolume = hasNarration ? 0.15 : 0.5;
   const bgmVolume = interpolate(
     frame,
     [0, fadeInDuration, durationInFrames - fadeOutDuration, durationInFrames],
-    [0, 0.5, 0.5, 0],
+    [0, bgmPeakVolume, bgmPeakVolume, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
@@ -169,10 +165,10 @@ export const PdfShowcase: React.FC<PdfShowcaseProps> = ({
         />
         {sequences.map((seq, seqIndex) => {
         if (seq.type === "stack") {
-          // Determine if this is opening or ending stack
           const isEnding = seqIndex === sequences.length - 1 && seqIndex > 0;
           return (
             <Sequence key={seq.index} from={seq.from} durationInFrames={seq.duration}>
+              {seq.audioSrc && <Audio src={staticFile(seq.audioSrc)} volume={1} />}
               <StackScene
                 src={src}
                 pages={availablePages}
@@ -192,6 +188,7 @@ export const PdfShowcase: React.FC<PdfShowcaseProps> = ({
 
           return (
             <Sequence key={seq.index} from={seq.from} durationInFrames={seq.duration}>
+              {seq.audioSrc && <Audio src={staticFile(seq.audioSrc)} volume={1} />}
               <FocusScene
                 src={src}
                 pages={availablePages}
@@ -214,6 +211,7 @@ export const PdfShowcase: React.FC<PdfShowcaseProps> = ({
           const sceneDescription = pageDescriptions?.[String(seq.page)];
           return (
             <Sequence key={seq.index} from={seq.from} durationInFrames={seq.duration}>
+              {seq.audioSrc && <Audio src={staticFile(seq.audioSrc)} volume={1} />}
               <SwitchScene
                 src={src}
                 pages={availablePages}
@@ -238,6 +236,7 @@ export const PdfShowcase: React.FC<PdfShowcaseProps> = ({
           const sceneDescription = pageDescriptions?.[String(seq.page)];
           return (
             <Sequence key={seq.index} from={seq.from} durationInFrames={seq.duration}>
+              {seq.audioSrc && <Audio src={staticFile(seq.audioSrc)} volume={1} />}
               <FanScene
                 src={src}
                 pages={availablePages}

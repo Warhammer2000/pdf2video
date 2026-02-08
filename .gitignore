@@ -42,3 +42,7 @@ public/*.pdf
 public/*.mp3
 props/*.json
 !props/example.json
+
+# TTS cache and generated audio
+.cache/
+public/tts/
