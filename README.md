@@ -5,11 +5,12 @@
 **Transform PDF documents into engaging video presentations with smooth animations.**
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Fork](https://img.shields.io/badge/Fork-TTS_Enhanced-orange.svg)](https://github.com/JinsFavorites/pdf2video)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
 [![Remotion](https://img.shields.io/badge/Remotion-4.0-purple.svg)](https://www.remotion.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 
-[Features](#features) • [Quick Start](#quick-start) • [Configuration](#configuration) • [Demo](#demo)
+[Features](#features) • [TTS Enhancement](#-tts-enhancement-fork-addition) • [Quick Start](#quick-start) • [Configuration](#configuration) • [Demo](#demo)
 
 ---
 
@@ -18,6 +19,42 @@
 ## Demo
 
 https://github.com/user-attachments/assets/464622be-c855-42c6-bc9e-988350906d92
+
+---
+
+## 🔊 TTS Enhancement (Fork Addition)
+
+This fork adds **automated Text-to-Speech narration** to PDF videos using AI-powered voice synthesis.
+
+### Key Additions
+
+- **Dual TTS Provider Support**
+  - OpenAI TTS (gpt-4o-mini-tts) with 10 voice options
+  - ElevenLabs Multilingual v2 with 12+ premium voices
+
+- **Intelligent Script Generation**
+  - LLM-powered narration from PDF content
+  - Automatic scene timing based on audio duration
+  - Multi-language support (English, Russian, Chinese, Japanese, and more)
+
+- **Voice Customization**
+  - Multiple voice styles (professional, friendly, academic, energetic, calm)
+  - Gender-based voice selection
+  - Voice caching for faster re-renders
+
+### Example Videos with TTS
+
+**ElevenLabs Voice (Roger - Authoritative):**
+
+https://github.com/Warhammer2000/pdf2video/releases/download/release-video/05-udp-elevenlabs.mp4
+
+**OpenAI Voice (Onyx - Deep & Professional):**
+
+https://github.com/Warhammer2000/pdf2video/releases/download/release-video/05-udp-openai.mp4
+
+See [TTS Pipeline](#tts-pipeline) section below for detailed usage.
+
+---
 
 ## Features
 
@@ -214,6 +251,124 @@ Claude will:
 3. Generate props.json configuration
 4. Render the video automatically
 
+## TTS Pipeline
+
+The TTS (Text-to-Speech) pipeline automatically generates narration for your PDF videos.
+
+### Prerequisites
+
+Set up your API keys in `.env` file:
+
+```bash
+# For OpenAI TTS
+OPENAI_API_KEY=your_openai_api_key_here
+
+# For ElevenLabs TTS (optional)
+ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+```
+
+### Basic Usage
+
+```bash
+# Generate video with default settings (OpenAI, onyx voice)
+npm run tts -- --pdf public/sample.pdf --props props/example.json
+
+# Use ElevenLabs with custom voice
+npm run tts -- --pdf public/sample.pdf --props props/example.json \
+  --provider elevenlabs --voice roger --lang en
+
+# Customize voice style (OpenAI only)
+npm run tts -- --pdf public/sample.pdf --props props/example.json \
+  --provider openai --voice nova --style professional
+```
+
+### Available Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--pdf` | Path to PDF file | Required |
+| `--props` | Path to props.json | Required |
+| `--provider` | TTS provider: `openai` or `elevenlabs` | `openai` |
+| `--voice` | Voice name (see list below) | `onyx` (OpenAI), `roger` (ElevenLabs) |
+| `--style` | Voice style (OpenAI only): `professional`, `friendly`, `academic`, `energetic`, `calm` | `professional` |
+| `--lang` | Language code: `en`, `ru`, `zh`, `ja`, `ko`, etc. | `en` |
+| `--output` | Output path for generated props | `props/{basename}-tts.json` |
+
+### List Available Voices
+
+```bash
+# List OpenAI voices
+npm run tts -- --list-voices --provider openai
+
+# List ElevenLabs voices
+npm run tts -- --list-voices --provider elevenlabs
+
+# Filter by gender
+npm run tts -- --list-voices --provider openai --gender male
+npm run tts -- --list-voices --provider elevenlabs --gender female
+```
+
+### OpenAI Voices
+
+| Voice | Gender | Character |
+|-------|--------|-----------|
+| onyx | male | Authoritative and deep, great for presentations |
+| echo | male | Smooth and steady, good for narration |
+| fable | female | Expressive and engaging, British-accented |
+| nova | female | Professional, clear and confident |
+| shimmer | female | Bright and energetic |
+| alloy | neutral | Balanced and clear, works for any content |
+
+### ElevenLabs Voices
+
+| Voice | Gender | Character |
+|-------|--------|-----------|
+| roger | male | Authoritative and clear, perfect for presentations |
+| aria | female | Expressive and confident, great for narration |
+| george | male | Warm British accent, storyteller quality |
+| laura | female | Warm and natural, conversational tone |
+| river | neutral | Non-binary, smooth and modern |
+
+### How It Works
+
+1. **PDF Text Extraction** - Extracts text from specified pages
+2. **LLM Script Generation** - Uses GPT to create natural narration from PDF content
+3. **TTS Audio Generation** - Generates speech audio via OpenAI or ElevenLabs
+4. **Duration Adjustment** - Automatically adjusts scene durations to match audio length
+5. **Props Update** - Creates final props.json with audio references
+
+### Example Workflow
+
+```bash
+# 1. Create base props with highlights
+cat > props/my-presentation.json << EOF
+{
+  "src": "/my-paper.pdf",
+  "title": "Research Findings",
+  "subtitle": "2024 Results",
+  "highlights": [1, 5, 10, 15, 20]
+}
+EOF
+
+# 2. Generate TTS narration
+npm run tts -- --pdf public/my-paper.pdf --props props/my-presentation.json \
+  --provider elevenlabs --voice aria --style professional --lang en
+
+# 3. Render final video
+npx remotion render PdfShowcase out/my-presentation.mp4 \
+  --props=props/my-presentation-tts.json
+```
+
+### Cache System
+
+Generated audio files are cached in `.cache/tts/` to avoid regenerating identical narration. The cache key includes:
+- Narration text content
+- Provider (openai/elevenlabs)
+- Voice name
+- Style (for OpenAI)
+
+Delete `.cache/tts/` to force regeneration.
+
 ## Project Structure
 
 ```
@@ -221,17 +376,32 @@ Claude will:
 │   └── example.json            # Example: props/glm45.json
 ├── public/                     # Static assets
 │   ├── *.pdf                   # PDF source files
-│   └── background.mp3          # Background music
+│   ├── background.mp3          # Background music
+│   └── tts/                    # Generated TTS audio files (auto-created)
 ├── out/                        # Rendered video output
 │   └── example.mp4             # Example: out/glm45.mp4
+├── .cache/                     # TTS audio cache (auto-created)
+│   └── tts/                    # Cached audio files
+├── scripts/                    # TTS pipeline scripts
+│   ├── tts-pipeline.ts         # Main TTS pipeline script
+│   └── lib/                    # Pipeline modules
+│       ├── cli.ts              # Command-line argument parser
+│       ├── config.ts           # Voice profiles and configurations
+│       ├── helpers.ts          # Utility functions
+│       ├── llm.ts              # LLM-powered script generation
+│       ├── pdf-extract.ts      # PDF text extraction
+│       ├── tts.ts              # TTS API integration (OpenAI/ElevenLabs)
+│       ├── types.ts            # TypeScript type definitions
+│       ├── voices.ts           # Voice listing utilities
+│       └── build-props.ts      # Final props builder with audio
 └── src/
     ├── index.ts                # Entry point
     ├── Root.tsx                # Remotion root component
     └── templates/
         ├── Blank.tsx           # Blank template
         └── PdfShowcase/        # PDF showcase template
-            ├── index.tsx       # Main component
-            ├── types.ts        # Type definitions
+            ├── index.tsx       # Main component (with TTS support)
+            ├── types.ts        # Type definitions (with audio types)
             ├── PdfPage.tsx     # PDF page renderer
             ├── StackScene.tsx  # Stack scene
             ├── FocusScene.tsx  # Focus scene
@@ -251,10 +421,17 @@ Claude will:
 
 ## Tech Stack
 
+### Core
 - [Remotion](https://www.remotion.dev/) - React video framework
 - [react-pdf](https://github.com/wojtekmaj/react-pdf) - PDF rendering
 - [pdfjs-dist](https://mozilla.github.io/pdf.js/) - PDF parsing
 - [Zod](https://zod.dev/) - Schema validation
+
+### TTS Pipeline
+- [OpenAI API](https://platform.openai.com/docs/api-reference/audio/createSpeech) - GPT-4o-mini TTS & LLM
+- [ElevenLabs API](https://elevenlabs.io/) - Multilingual TTS v2
+- [fluent-ffmpeg](https://github.com/fluent-ffmpeg/node-fluent-ffmpeg) - Audio duration detection
+- [dotenv](https://github.com/motdotla/dotenv) - Environment variable management
 
 ---
 
