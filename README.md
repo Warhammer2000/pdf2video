@@ -46,11 +46,17 @@ This fork adds **automated Text-to-Speech narration** to PDF videos using AI-pow
 
 **ElevenLabs Voice (Roger - Authoritative):**
 
-https://github.com/Warhammer2000/pdf2video/releases/download/release-video/05-udp-elevenlabs.mp4
+
+https://github.com/user-attachments/assets/500ae393-5ce6-4c6b-94e0-c5edab5139c4
+
+
 
 **OpenAI Voice (Onyx - Deep & Professional):**
 
-https://github.com/Warhammer2000/pdf2video/releases/download/release-video/05-udp-openai.mp4
+
+https://github.com/user-attachments/assets/4c3b4306-669a-40d4-89b6-540917d2f2e0
+
+
 
 See [TTS Pipeline](#tts-pipeline) section below for detailed usage.
 
